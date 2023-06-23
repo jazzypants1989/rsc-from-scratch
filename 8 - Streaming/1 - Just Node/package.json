@@ -1,0 +1,32 @@
+{
+  "name": "my-blog",
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.21.8",
+    "@babel/plugin-transform-react-jsx": "^7.21.5",
+    "concurrently": "^7.3.0",
+    "image-size": "^1.0.2",
+    "nodemon": "^2.0.22",
+    "react": "canary",
+    "react-dom": "canary",
+    "react-markdown": "^8.0.7",
+    "react-server-dom-webpack": "canary",
+    "sanitize-filename": "^1.6.3",
+    "undici": "^5.22.1"
+  },
+  "scripts": {
+    "start": "concurrently \"npm run start:ssr\" \"npm run start:rsc\"",
+    "start:rsc": "nodemon --experimental-loader ./node-jsx-loader.js ./server/rsc.js",
+    "start:ssr": "nodemon --experimental-loader ./node-jsx-loader.js ./server/ssr.js"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.21"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "node_modules/",
+      "**.json"
+    ]
+  }
+}

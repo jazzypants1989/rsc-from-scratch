@@ -1,0 +1,14 @@
+{
+  "type": "commonjs",
+  "main": "./api.server.js",
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-react",
+        {
+          "runtime": "automatic"
+        }
+      ]
+    ]
+  }
+}

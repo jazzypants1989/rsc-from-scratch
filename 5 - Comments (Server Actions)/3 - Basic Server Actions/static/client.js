@@ -1,0 +1,173 @@
+import { hydrateRoot } from "react-dom/client"
+
+const root = hydrateRoot(document, getInitialClientJSX())
+let currentPathname = window.location.pathname
+
+function randomColor() {
+  const r = Math.floor(Math.random() * 256)
+    .toString(16)
+    .padStart(2, "0")
+  const g = Math.floor(Math.random() * 256)
+    .toString(16)
+    .padStart(2, "0")
+  const b = Math.floor(Math.random() * 256)
+    .toString(16)
+    .padStart(2, "0")
+  return "#" + r + g + b
+}
+
+const body = document.querySelector("body")
+body.style.transition = "background-color 2s ease-in-out"
+body.style.backgroundColor = randomColor()
+
+async function navigate(pathname) {
+  currentPathname = pathname
+  const clientJSX = await fetchClientJSX(pathname)
+  if (pathname === currentPathname) {
+    body.style.backgroundColor = randomColor()
+    root.render(clientJSX)
+  }
+}
+
+function getInitialClientJSX() {
+  const clientJSX = JSON.parse(window.__INITIAL_CLIENT_JSX_STRING__, parseJSX)
+  return clientJSX
+}
+
+async function fetchClientJSX(pathname) {
+  const response = await fetch(pathname + "?jsx")
+  const clientJSXString = await response.text()
+  const clientJSX = JSON.parse(clientJSXString, parseJSX)
+  return clientJSX
+}
+
+function parseJSX(key, value) {
+  if (value === "$RE") {
+    return Symbol.for("react.element")
+  } else if (typeof value === "string" && value.startsWith("$$")) {
+    return value.slice(1)
+  } else {
+    return value
+  }
+}
+
+window.addEventListener(
+  "click",
+  (e) => {
+    if (e.target.tagName !== "A") {
+      return
+    }
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+      return
+    }
+    const href = e.target.getAttribute("href")
+    if (!href.startsWith("/")) {
+      return
+    }
+    e.preventDefault()
+    window.history.pushState(null, null, href)
+    navigate(href)
+  },
+  true
+)
+
+window.addEventListener("popstate", () => {
+  navigate(window.location.pathname)
+})
+
+window.addEventListener("submit", async (e) => {
+  const action = e.target.action
+  let actionUrl = new URL(action)
+
+  if (!actionUrl.pathname.startsWith("/api/")) {
+    console.log("not a form or RPC")
+    return
+  }
+
+  e.preventDefault()
+
+  try {
+    if (e.target.method === "get") {
+      const formData = new FormData(e.target)
+      const queryParams = new URLSearchParams(formData)
+      const url = action + "?" + queryParams.toString()
+      await fetch(url)
+
+      navigate(window.location.pathname)
+      return
+    } else if (e.target.method === "post") {
+      const formData = new FormData(e.target)
+      const body = Object.fromEntries(formData.entries())
+      const url = action
+      await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      navigate(window.location.pathname)
+      return
+    } else {
+      console.error("unknown method", e.target.method)
+    }
+  } catch (err) {
+    console.error(err)
+  }
+})
+
+window.addEventListener("submit", async (e) => {
+  const action = e.target.action
+  const actionURL = new URL(action, `http://${window.location.host}`)
+
+  if (!actionURL.pathname.startsWith("/api/")) {
+    console.log("not an API call")
+    return
+  }
+
+  e.preventDefault()
+
+  try {
+    if (e.target.method === "get") {
+      const formData = new FormData(e.target)
+      const queryParams = new URLSearchParams(formData)
+      const url = action + "?" + queryParams.toString()
+      const response = await fetch(url)
+      const location = response.headers.get("Location")
+      if (location) {
+        window.history.pushState(null, null, location)
+        navigate(location)
+      } else {
+        navigate(window.location.pathname)
+      }
+      return
+    } else if (e.target.method === "post") {
+      const formData = new FormData(e.target)
+      const body = Object.fromEntries(formData.entries())
+      const url = action
+      const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      response.headers.forEach((value, key) => {
+        console.log(key, value)
+      })
+      const location = response.headers.get("Location")
+      if (location) {
+        window.history.pushState(null, null, location)
+        navigate(location)
+      } else {
+        navigate(window.location.pathname)
+      }
+      return
+    } else {
+      console.error("unknown method", e.target.method)
+    }
+  } catch (err) {
+    console.error(err)
+  }
+})

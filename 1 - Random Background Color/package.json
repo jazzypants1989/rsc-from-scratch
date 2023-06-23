@@ -1,0 +1,22 @@
+{
+  "name": "my-blog",
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.21.8",
+    "@babel/plugin-transform-react-jsx": "^7.21.5",
+    "concurrently": "^7.3.0",
+    "nodemon": "^2.0.22",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sanitize-filename": "^1.6.3"
+  },
+  "scripts": {
+    "start": "concurrently \"npm run start:ssr\" \"npm run start:rsc\"",
+    "start:rsc": "nodemon -- --experimental-loader ./node-jsx-loader.js ./server/rsc.js",
+    "start:ssr": "nodemon -- --experimental-loader ./node-jsx-loader.js ./server/ssr.js"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.21"
+  }
+}
