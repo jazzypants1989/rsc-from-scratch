@@ -4,7 +4,7 @@ In this repo, I implemented server actions and client components without react-s
 
 ## Youtube Video
 
-(Here, I go through every chapter of this series and explain each part of the code in detail.)[https://youtu.be/QktJ0ReABD4]
+[Here, I go through every chapter of this series and explain each part of the code in detail.](https://youtu.be/QktJ0ReABD4)
 
 ## More Examples
 
